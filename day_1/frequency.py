@@ -1,9 +1,10 @@
 import argparse
 import os
 import sys
+import profile
 from typing import List, Tuple
 
-from ordered_set import OrderedSet
+from oset import oset
 
 def parse_frequency(frequency):
     result = 0
@@ -14,19 +15,11 @@ def parse_frequency(frequency):
     return result
 
 
-def update_frequency(frequency: 'OrderedSet[int]', next_frequency: int) -> 'Tuple[OrderedSet[int], int]':
-    result_frequency: 'OrderedSet[int]' = OrderedSet(frequency)
-    most_recent_frequency = result_frequency[-1]
-    subtotal = most_recent_frequency+next_frequency  # type: ignore  # indexing returned an int
-    result_frequency.add(subtotal)
-    return (result_frequency, subtotal)
-
-
-def has_repeat(initial: 'OrderedSet[int]', final: 'OrderedSet[int]') -> bool:
-    result = len(initial) == len(final)
-    if result:
-        print("Found a duplicate!")
-    return result
+def update_frequency(frequency: 'oset', next_frequency: int) -> 'Tuple[oset, int]':
+    most_recent_frequency = frequency[-1]
+    subtotal = most_recent_frequency+next_frequency
+    frequency.add(subtotal)
+    return (frequency, subtotal)
 
 
 def get_args(args):
@@ -66,26 +59,27 @@ def get_input_path(args):
     return os.path.join(args.path, args.file)
 
 
-def find_repeat(current_frequency: 'OrderedSet[int]', frequencies: 'List[int]') -> int:
+def find_repeat(current_frequency: 'oset', frequencies: 'List[int]') -> int:
     looping = True
     subtotal = current_frequency[-1]  # type: ignore  # subtotal is an int
     loops = 0
     while looping:
         loops += 1
         for next_frequency in frequencies:
-            previous_frequency = OrderedSet(current_frequency)
+            previous_size = len(current_frequency)
             current_frequency, subtotal = update_frequency(current_frequency, next_frequency)
-            if has_repeat(previous_frequency, current_frequency):
+            if previous_size == len(current_frequency):
+                print("Duplicate found")
                 looping = False
                 break
-        print("Loop #{} - Size: {}".format(loops, len(current_frequency)))
+        print("."*loops)
     return subtotal
 
 
 if __name__ == "__main__":
     args = get_args(sys.argv[1:])
     subtotal = args.initial
-    current_frequency = OrderedSet([subtotal])
+    current_frequency = oset([subtotal])
     with open(get_input_path(args), 'r') as f:
         frequencies = [parse_frequency(next_frequency) for next_frequency in f]
         if args.repeat == True:

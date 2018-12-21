@@ -2,7 +2,7 @@
 
 import pytest
 
-from ordered_set import OrderedSet
+from oset import oset
 
 import frequency
 
@@ -24,29 +24,30 @@ def test_parse_frequency_handles_nonnumerics(given):
     assert frequency.parse_frequency(given) == 0
 
 def test_update_frequency_counts_up_with_positives():
-    assert frequency.update_frequency(OrderedSet([0]), 1) == (OrderedSet([0, 1]), 1)
+    assert frequency.update_frequency(oset([0]), 1) == (oset([0, 1]), 1)
 
 def test_update_frequency_counts_down_with_negatives():
-    assert frequency.update_frequency(OrderedSet([0]), -1) == (OrderedSet([0, -1]), -1)
+    assert frequency.update_frequency(oset([0]), -1) == (oset([0, -1]), -1)
 
 def test_update_frequency_unchanged_with_zeroes():
-    assert frequency.update_frequency(OrderedSet([1]), 0) == (OrderedSet([1]), 1)
+    assert frequency.update_frequency(oset([1]), 0) == (oset([1]), 1)
 
 def test_has_repeat_returns_false_without_repeat():
-    initial = OrderedSet([0, 1])
+    initial = oset([0, 1])
+    initial_size = len(initial)
     final, subtotal = frequency.update_frequency(initial, 1)
-    assert frequency.has_repeat(initial, final) == False
+    assert initial_size != len(final)
 
 def test_has_repeat_returns_true_with_repeat():
-    initial = OrderedSet([3, 2])
+    initial = oset([3, 2])
     final, subtotal = frequency.update_frequency(initial, 1)
-    assert frequency.has_repeat(initial, final) == True
+    assert len(initial) == len(final)
 
 sets = [
-    (OrderedSet([3]), -1, (OrderedSet([3, 2]), 2)),
-    (OrderedSet([3, 2]), 2, (OrderedSet([3, 2, 4]), 4)),
-    (OrderedSet([3, 2]), 1, (OrderedSet([3, 2]), 3)),
-    (OrderedSet([0, 3, 6, 10, 8]), -4, (OrderedSet([0, 3, 6, 10, 8, 4]), 4))
+    (oset([3]), -1, (oset([3, 2]), 2)),
+    (oset([3, 2]), 2, (oset([3, 2, 4]), 4)),
+    (oset([3, 2]), 1, (oset([3, 2]), 3)),
+    (oset([0, 3, 6, 10, 8]), -4, (oset([0, 3, 6, 10, 8, 4]), 4))
 ]
 @pytest.mark.parametrize('past_frequencies, next_frequency, expected_frequencies', sets)
 def test_frequency_subtotals_are_insertion_ordered(past_frequencies, next_frequency, expected_frequencies):
@@ -60,6 +61,6 @@ repeatables = [
 ]
 @pytest.mark.parametrize('initial, frequencies, expected', repeatables)
 def test_repeating_updates_loops_until_results_found(initial, frequencies, expected):
-    initial_set = OrderedSet([initial])
+    initial_set = oset([initial])
     assert frequency.find_repeat(initial_set, frequencies) == expected
     
